@@ -1,0 +1,30 @@
+# dependencies
+node_modules
+.pnp
+.pnp.js
+
+# build / cache
+.next
+out
+build
+.turbo
+*.tsbuildinfo
+
+# env (never commit secrets)
+.env
+.env.local
+.env.*.local
+
+# debug
+npm-debug.log*
+.yarn-integrity
+
+# drizzle
+drizzle/meta
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+.DS_Store

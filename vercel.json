@@ -1,0 +1,10 @@
+{
+  "redirects": [
+    {
+      "source": "/:path*",
+      "has": [{ "type": "host", "value": "www.californiaweddingvenues.ca" }],
+      "destination": "https://californiaweddingvenues.ca/:path*",
+      "permanent": true
+    }
+  ]
+}
