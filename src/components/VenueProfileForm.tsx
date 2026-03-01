@@ -100,15 +100,17 @@ export function VenueProfileForm({
     let uploadedUrls: string[] = [];
     if (pendingPhotoFiles.length > 0) {
       try {
-        const uploadForm = new FormData();
-        pendingPhotoFiles.forEach((f) => uploadForm.append("photos", f));
-        const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm });
-        if (!uploadRes.ok) {
-          const d = await uploadRes.json().catch(() => ({}));
-          throw new Error(d.error || "Photo upload failed");
+        for (const file of pendingPhotoFiles) {
+          const form = new FormData();
+          form.append("photo", file);
+          const uploadRes = await fetch("/api/upload", { method: "POST", body: form });
+          if (!uploadRes.ok) {
+            const d = await uploadRes.json().catch(() => ({}));
+            throw new Error(d.error || "Photo upload failed");
+          }
+          const data = await uploadRes.json();
+          if (data.url) uploadedUrls.push(data.url);
         }
-        const data = await uploadRes.json();
-        uploadedUrls = data.urls ?? [];
       } catch (err) {
         setError(err instanceof Error ? err.message : "Photo upload failed.");
         setSaving(false);

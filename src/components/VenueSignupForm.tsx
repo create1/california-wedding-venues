@@ -51,15 +51,19 @@ export function VenueSignupForm() {
     }
     let photoUrls: string[];
     try {
-      const uploadForm = new FormData();
-      photoFiles.forEach((f) => uploadForm.append("photos", f));
-      const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm });
-      if (!uploadRes.ok) {
-        const d = await uploadRes.json().catch(() => ({}));
-        throw new Error(d.error || "Photo upload failed");
+      const urls: string[] = [];
+      for (let i = 0; i < Math.min(photoFiles.length, 8); i++) {
+        const form = new FormData();
+        form.append("photo", photoFiles[i]!);
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: form });
+        if (!uploadRes.ok) {
+          const d = await uploadRes.json().catch(() => ({}));
+          throw new Error(d.error || "Photo upload failed");
+        }
+        const data = await uploadRes.json();
+        if (data.url) urls.push(data.url);
       }
-      const { urls } = await uploadRes.json();
-      photoUrls = (urls as string[]).slice(0, 8);
+      photoUrls = urls;
     } catch (err) {
       setError(err instanceof Error ? err.message : "Photo upload failed.");
       setLoading(false);
@@ -222,7 +226,7 @@ export function VenueSignupForm() {
               onChange={(e) => setPhotoFiles(Array.from(e.target.files ?? []))}
             />
             <p className="mt-1 text-xs text-stone-500">
-              {photoFiles.length} selected. JPEG, PNG, WebP or GIF, max 5MB each. You can change these in your dashboard after approval.
+              {photoFiles.length} selected. JPEG, PNG, WebP or GIF, max 4MB each. You can change these in your dashboard after approval.
             </p>
           </div>
         </div>
