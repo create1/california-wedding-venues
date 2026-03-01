@@ -36,6 +36,7 @@ export function VenueSignupForm() {
   const router = useRouter();
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [photoFiles, setPhotoFiles] = useState<File[]>([]);
 
   async function submit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
@@ -43,9 +44,24 @@ export function VenueSignupForm() {
     setLoading(true);
     const form = e.currentTarget;
     const fd = new FormData(form);
-    const photoUrls = (fd.get("photoUrls") as string)?.split("\n").map((s) => s.trim()).filter(Boolean) ?? [];
-    if (photoUrls.length < 8) {
-      setError("Please add at least 8 photo URLs (one per line).");
+    if (photoFiles.length < 8) {
+      setError("Please upload at least 8 photos.");
+      setLoading(false);
+      return;
+    }
+    let photoUrls: string[];
+    try {
+      const uploadForm = new FormData();
+      photoFiles.forEach((f) => uploadForm.append("photos", f));
+      const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm });
+      if (!uploadRes.ok) {
+        const d = await uploadRes.json().catch(() => ({}));
+        throw new Error(d.error || "Photo upload failed");
+      }
+      const { urls } = await uploadRes.json();
+      photoUrls = (urls as string[]).slice(0, 8);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Photo upload failed.");
       setLoading(false);
       return;
     }
@@ -74,7 +90,7 @@ export function VenueSignupForm() {
       capacityMax: fd.get("capacityMax") ? parseInt(String(fd.get("capacityMax")), 10) : null,
       priceMin: fd.get("priceMin") ? parseInt(String(fd.get("priceMin")).replace(/\D/g, ""), 10) : null,
       priceMax: fd.get("priceMax") ? parseInt(String(fd.get("priceMax")).replace(/\D/g, ""), 10) : null,
-      photoUrls: photoUrls.slice(0, 8),
+      photoUrls,
       styleIds,
     };
     const res = await fetch("/api/venue/signup", {
@@ -197,9 +213,17 @@ export function VenueSignupForm() {
             <input id="contactEmail" name="contactEmail" type="email" className="input mt-1" placeholder="Same as account email if blank" />
           </div>
           <div>
-            <label htmlFor="photoUrls" className="label">Photo URLs (one per line, at least 8) *</label>
-            <textarea id="photoUrls" name="photoUrls" rows={6} required className="input mt-1 font-mono text-sm" placeholder="https://example.com/photo1.jpg&#10;https://example.com/photo2.jpg&#10;..." />
-            <p className="mt-1 text-xs text-stone-500">Use direct image links. You can change these in your dashboard after approval.</p>
+            <label className="label">Photos (upload at least 8) *</label>
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              className="input mt-1"
+              onChange={(e) => setPhotoFiles(Array.from(e.target.files ?? []))}
+            />
+            <p className="mt-1 text-xs text-stone-500">
+              {photoFiles.length} selected. JPEG, PNG, WebP or GIF, max 5MB each. You can change these in your dashboard after approval.
+            </p>
           </div>
         </div>
       </div>

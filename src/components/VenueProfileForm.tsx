@@ -68,16 +68,16 @@ export function VenueProfileForm({
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
-  const [photoUrls, setPhotoUrls] = useState<string[]>(venue.photoUrls.length ? venue.photoUrls : [""]);
+  const [photoUrls, setPhotoUrls] = useState<string[]>(venue.photoUrls.length ? venue.photoUrls : []);
+  const [pendingPhotoFiles, setPendingPhotoFiles] = useState<File[]>([]);
   const [videoUrls, setVideoUrls] = useState<string[]>(venue.videoUrls.length ? venue.videoUrls : limits.maxVideos ? [""] : []);
   const [customSections, setCustomSections] = useState(venue.customSections.length ? venue.customSections : limits.maxCustomSections ? [{ title: "", body: "" }] : []);
 
-  function addPhoto() {
-    if (photoUrls.length >= limits.maxPhotos) return;
-    setPhotoUrls([...photoUrls, ""]);
-  }
   function removePhoto(i: number) {
     setPhotoUrls(photoUrls.filter((_, j) => j !== i));
+  }
+  function removePendingPhoto(i: number) {
+    setPendingPhotoFiles(pendingPhotoFiles.filter((_, j) => j !== i));
   }
   function addVideo() {
     if (videoUrls.length >= limits.maxVideos) return;
@@ -97,7 +97,25 @@ export function VenueProfileForm({
     setSaving(true);
     const form = e.currentTarget;
     const fd = new FormData(form);
-    const photos = (fd.getAll("photoUrls") as string[]).map((s) => s.trim()).filter(Boolean);
+    let uploadedUrls: string[] = [];
+    if (pendingPhotoFiles.length > 0) {
+      try {
+        const uploadForm = new FormData();
+        pendingPhotoFiles.forEach((f) => uploadForm.append("photos", f));
+        const uploadRes = await fetch("/api/upload", { method: "POST", body: uploadForm });
+        if (!uploadRes.ok) {
+          const d = await uploadRes.json().catch(() => ({}));
+          throw new Error(d.error || "Photo upload failed");
+        }
+        const data = await uploadRes.json();
+        uploadedUrls = data.urls ?? [];
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Photo upload failed.");
+        setSaving(false);
+        return;
+      }
+    }
+    const photos = [...photoUrls, ...uploadedUrls];
     if (photos.length > limits.maxPhotos) {
       setError(`Maximum ${limits.maxPhotos} photos for your plan.`);
       setSaving(false);
@@ -246,19 +264,33 @@ export function VenueProfileForm({
       </div>
 
       <div className="card p-6">
-        <h2 className="font-display text-lg font-semibold text-stone-800">Photos ({photoUrls.filter(Boolean).length} / {limits.maxPhotos})</h2>
-        <p className="mt-1 text-sm text-stone-500">Direct image URLs. One per line or field.</p>
-        <div className="mt-4 space-y-2">
+        <h2 className="font-display text-lg font-semibold text-stone-800">Photos ({photoUrls.length + pendingPhotoFiles.length} / {limits.maxPhotos})</h2>
+        <p className="mt-1 text-sm text-stone-500">Upload images (JPEG, PNG, WebP, GIF, max 5MB each).</p>
+        <div className="mt-4 flex flex-wrap gap-3">
           {photoUrls.map((url, i) => (
-            <div key={i} className="flex gap-2">
-              <input name="photoUrls" type="url" defaultValue={url} className="input flex-1" placeholder="https://..." />
-              <button type="button" onClick={() => removePhoto(i)} className="btn-secondary shrink-0">Remove</button>
+            <div key={`e-${i}`} className="relative">
+              <img src={url} alt="" className="h-24 w-24 rounded-lg object-cover border border-stone-200" />
+              <button type="button" onClick={() => removePhoto(i)} className="absolute -top-2 -right-2 rounded-full bg-stone-700 text-white w-5 h-5 text-xs leading-none" aria-label="Remove">×</button>
             </div>
           ))}
-          {photoUrls.length < limits.maxPhotos && (
-            <button type="button" onClick={addPhoto} className="btn-secondary">Add photo</button>
-          )}
+          {pendingPhotoFiles.map((file, i) => (
+            <div key={`p-${i}`} className="relative">
+              <img src={URL.createObjectURL(file)} alt="" className="h-24 w-24 rounded-lg object-cover border border-stone-200" />
+              <button type="button" onClick={() => removePendingPhoto(i)} className="absolute -top-2 -right-2 rounded-full bg-stone-700 text-white w-5 h-5 text-xs leading-none" aria-label="Remove">×</button>
+            </div>
+          ))}
         </div>
+        {photoUrls.length + pendingPhotoFiles.length < limits.maxPhotos && (
+          <div className="mt-3">
+            <input
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              multiple
+              className="input max-w-xs"
+              onChange={(e) => setPendingPhotoFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])].slice(0, limits.maxPhotos - photoUrls.length))}
+            />
+          </div>
+        )}
       </div>
 
       {limits.maxVideos > 0 && (

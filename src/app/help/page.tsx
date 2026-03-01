@@ -45,7 +45,7 @@ export default function HelpPage() {
           <li>
             <strong className="text-stone-800">How do I list my venue?</strong>
             <br />
-            Click “List your venue” and create an account. Fill in your venue details and at least 8 photo URLs. Submit for review. We aim to approve within 48 hours.
+            Click “List your venue” and create an account. Fill in your venue details and upload at least 8 photos. Submit for review. We aim to approve within 48 hours.
           </li>
           <li id="approval">
             <strong className="text-stone-800">How does approval work?</strong>

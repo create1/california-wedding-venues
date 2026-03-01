@@ -118,8 +118,10 @@ If your provider has a “Run SQL” or “Migration” UI, you can paste the co
    | `RESEND_API_KEY` | `re_...` | Optional; for lead/approval emails |
    | `FROM_EMAIL` | `noreply@californiaweddingvenues.ca` | Optional; sender for emails |
    | `ADMIN_EMAIL` | Your email | Optional; for access to `/admin` |
-   | `NEON_AUTH_BASE_URL` | From Neon Console → Auth | Only if you enabled Neon Auth |
-   | `NEON_AUTH_COOKIE_SECRET` | 32+ char secret | Only if you enabled Neon Auth |
+   | `NEON_AUTH_BASE_URL` | Neon Auth URL (e.g. `...neonauth.../neondb/auth`) | If you enabled Neon Auth |
+   | `NEON_AUTH_JWKS_URL` | Neon JWKS URL (e.g. `.../auth/.well-known/jwks.json`) | If you enabled Neon Auth |
+   | `NEON_AUTH_COOKIE_SECRET` | 32+ char secret (for Neon Auth SDK sessions) | Optional |
+   | `BLOB_READ_WRITE_TOKEN` | From Vercel → Storage → Blob → Create | Required for photo uploads |
 
 4. **Deploy**  
    Click **Deploy**. The first build may take a couple of minutes.
