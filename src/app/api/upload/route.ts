@@ -1,6 +1,8 @@
 import { put } from "@vercel/blob";
 import { NextResponse } from "next/server";
 
+export const runtime = "nodejs"; // Blob SDK works reliably in Node
+
 // Keep under Vercel 4.5MB request limit: one file per request, max 4MB
 const MAX_SIZE = 4 * 1024 * 1024; // 4 MB per file
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
@@ -23,10 +25,13 @@ export async function POST(req: Request) {
     }
     const ext = file.name.split(".").pop() || "jpg";
     const name = `venues/${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`;
-    const blob = await put(name, file, { access: "public" });
+    // Use arrayBuffer for serverless compatibility (File can be tricky in Edge)
+    const body = await file.arrayBuffer();
+    const blob = await put(name, body, { access: "public" });
     return NextResponse.json({ url: blob.url });
   } catch (e) {
+    const message = e instanceof Error ? e.message : "Upload failed";
     console.error("Upload error:", e);
-    return NextResponse.json({ error: "Upload failed" }, { status: 500 });
+    return NextResponse.json({ error: "Upload failed", detail: message }, { status: 500 });
   }
 }

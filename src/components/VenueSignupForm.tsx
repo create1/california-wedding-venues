@@ -58,7 +58,8 @@ export function VenueSignupForm() {
         const uploadRes = await fetch("/api/upload", { method: "POST", body: form });
         if (!uploadRes.ok) {
           const d = await uploadRes.json().catch(() => ({}));
-          throw new Error(d.error || "Photo upload failed");
+          const msg = d.detail ? `${d.error}: ${d.detail}` : (d.error || "Photo upload failed");
+          throw new Error(msg);
         }
         const data = await uploadRes.json();
         if (data.url) urls.push(data.url);
