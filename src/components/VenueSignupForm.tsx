@@ -57,26 +57,29 @@ export function VenueSignupForm() {
       return;
     }
     let photoUrls: string[];
+    const toUpload = Math.min(photoFiles.length, 8);
     try {
       const urls: string[] = [];
-      for (let i = 0; i < Math.min(photoFiles.length, 8); i++) {
+      for (let i = 0; i < toUpload; i++) {
+        setError(`Uploading photo ${i + 1} of ${toUpload}…`);
         const form = new FormData();
         form.append("photo", photoFiles[i]!);
         const uploadRes = await fetch("/api/upload", { method: "POST", body: form });
         if (uploadRes.status === 413) {
-          throw new Error("File too large (max 3MB per photo). Use smaller images.");
+          throw new Error(`Photo ${i + 1} is too large (max 3MB). Resize or use smaller images.`);
         }
         if (!uploadRes.ok) {
           const d = await uploadRes.json().catch(() => ({}));
-          const msg = d.detail ? `${d.error}: ${d.detail}` : (d.error || "Photo upload failed");
-          throw new Error(msg);
+          const msg = d.error || "Upload failed";
+          throw new Error(`Photo ${i + 1}: ${msg}. Try images under 3MB each.`);
         }
         const data = await uploadRes.json();
         if (data.url) urls.push(data.url);
       }
+      setError("");
       photoUrls = urls;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Photo upload failed.");
+      setError(err instanceof Error ? err.message : "Photo upload failed. Use images under 3MB each.");
       setLoading(false);
       return;
     }
@@ -229,15 +232,18 @@ export function VenueSignupForm() {
           </div>
           <div>
             <label className="label">Photos (upload at least 8) *</label>
+            <p className="mt-1 rounded-md bg-amber-50 border border-amber-200 px-3 py-2 text-sm text-amber-800">
+              Use images <strong>under 3MB each</strong> or uploads may fail. Resize large photos on your phone or computer first.
+            </p>
             <input
               type="file"
               accept="image/jpeg,image/png,image/webp,image/gif"
               multiple
-              className="input mt-1"
+              className="input mt-2"
               onChange={(e) => setPhotoFiles(Array.from(e.target.files ?? []))}
             />
             <p className="mt-1 text-xs text-stone-500">
-              {photoFiles.length} selected. JPEG, PNG, WebP or GIF, max 3MB each. You can change these in your dashboard after approval.
+              {photoFiles.length} selected. JPEG, PNG, WebP or GIF. You can change these in your dashboard after approval.
             </p>
           </div>
         </div>
