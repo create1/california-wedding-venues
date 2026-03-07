@@ -36,7 +36,8 @@ export async function POST(req: Request) {
     const name = `venues/${Date.now()}-${Math.random().toString(36).slice(2, 9)}.${ext}`;
     // Use arrayBuffer for serverless compatibility (File can be tricky in Edge)
     const body = await file.arrayBuffer();
-    const blob = await put(name, body, { access: "private" });
+    // Store is private; @vercel/blob 0.20 types only allow "public" but runtime accepts "private"
+    const blob = await put(name, body, { access: "private" } as unknown as { access: "public" });
     return NextResponse.json({ url: blob.url });
   } catch (e) {
     const message = e instanceof Error ? e.message : "Upload failed";
