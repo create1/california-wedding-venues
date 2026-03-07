@@ -99,11 +99,21 @@ export function VenueProfileForm({
     const fd = new FormData(form);
     let uploadedUrls: string[] = [];
     if (pendingPhotoFiles.length > 0) {
+      const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB
+      const tooBig = pendingPhotoFiles.find((f) => f.size > MAX_FILE_SIZE);
+      if (tooBig) {
+        setError("One or more photos are over 3MB. Please use smaller images.");
+        setSaving(false);
+        return;
+      }
       try {
         for (const file of pendingPhotoFiles) {
           const form = new FormData();
           form.append("photo", file);
           const uploadRes = await fetch("/api/upload", { method: "POST", body: form });
+          if (uploadRes.status === 413) {
+            throw new Error("File too large (max 3MB per photo). Use smaller images.");
+          }
           if (!uploadRes.ok) {
             const d = await uploadRes.json().catch(() => ({}));
             const msg = d.detail ? `${d.error}: ${d.detail}` : (d.error || "Photo upload failed");
@@ -268,7 +278,7 @@ export function VenueProfileForm({
 
       <div className="card p-6">
         <h2 className="font-display text-lg font-semibold text-stone-800">Photos ({photoUrls.length + pendingPhotoFiles.length} / {limits.maxPhotos})</h2>
-        <p className="mt-1 text-sm text-stone-500">Upload images (JPEG, PNG, WebP, GIF, max 5MB each).</p>
+        <p className="mt-1 text-sm text-stone-500">Upload images (JPEG, PNG, WebP, GIF, max 3MB each).</p>
         <div className="mt-4 flex flex-wrap gap-3">
           {photoUrls.map((url, i) => (
             <div key={`e-${i}`} className="relative">
@@ -290,7 +300,12 @@ export function VenueProfileForm({
               accept="image/jpeg,image/png,image/webp,image/gif"
               multiple
               className="input max-w-xs"
-              onChange={(e) => setPendingPhotoFiles((prev) => [...prev, ...Array.from(e.target.files ?? [])].slice(0, limits.maxPhotos - photoUrls.length))}
+              onChange={(e) => {
+                const MAX = 3 * 1024 * 1024; // 3MB
+                const ok = Array.from(e.target.files ?? []).filter((f) => f.size <= MAX);
+                setPendingPhotoFiles((prev) => [...prev, ...ok].slice(0, limits.maxPhotos - photoUrls.length));
+                e.target.value = "";
+              }}
             />
           </div>
         )}

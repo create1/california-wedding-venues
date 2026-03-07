@@ -49,6 +49,13 @@ export function VenueSignupForm() {
       setLoading(false);
       return;
     }
+    const MAX_FILE_SIZE = 3 * 1024 * 1024; // 3MB - under Vercel 4.5MB limit
+    const tooBig = photoFiles.find((f) => f.size > MAX_FILE_SIZE);
+    if (tooBig) {
+      setError("One or more photos are over 3MB. Please use smaller images (under 3MB each).");
+      setLoading(false);
+      return;
+    }
     let photoUrls: string[];
     try {
       const urls: string[] = [];
@@ -56,6 +63,9 @@ export function VenueSignupForm() {
         const form = new FormData();
         form.append("photo", photoFiles[i]!);
         const uploadRes = await fetch("/api/upload", { method: "POST", body: form });
+        if (uploadRes.status === 413) {
+          throw new Error("File too large (max 3MB per photo). Use smaller images.");
+        }
         if (!uploadRes.ok) {
           const d = await uploadRes.json().catch(() => ({}));
           const msg = d.detail ? `${d.error}: ${d.detail}` : (d.error || "Photo upload failed");
@@ -227,7 +237,7 @@ export function VenueSignupForm() {
               onChange={(e) => setPhotoFiles(Array.from(e.target.files ?? []))}
             />
             <p className="mt-1 text-xs text-stone-500">
-              {photoFiles.length} selected. JPEG, PNG, WebP or GIF, max 4MB each. You can change these in your dashboard after approval.
+              {photoFiles.length} selected. JPEG, PNG, WebP or GIF, max 3MB each. You can change these in your dashboard after approval.
             </p>
           </div>
         </div>

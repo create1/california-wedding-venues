@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs"; // Blob SDK works reliably in Node
 
-// Keep under Vercel 4.5MB request limit: one file per request, max 4MB
-const MAX_SIZE = 4 * 1024 * 1024; // 4 MB per file
+// Stay under Vercel 4.5MB request limit (multipart overhead): max 3MB per file
+const MAX_SIZE = 3 * 1024 * 1024; // 3 MB per file
 const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp", "image/gif"];
 
 export async function POST(req: Request) {
@@ -18,7 +18,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "No file" }, { status: 400 });
     }
     if (file.size > MAX_SIZE) {
-      return NextResponse.json({ error: "File too large (max 4MB per photo)" }, { status: 400 });
+      return NextResponse.json({ error: "File too large (max 3MB per photo)" }, { status: 400 });
     }
     if (!ALLOWED_TYPES.includes(file.type)) {
       return NextResponse.json({ error: "Invalid file type (use JPEG, PNG, WebP, GIF)" }, { status: 400 });
