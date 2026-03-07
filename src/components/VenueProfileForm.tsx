@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { getPhotoDisplayUrl } from "@/lib/utils";
 
 type Limits = {
   maxPhotos: number;
@@ -282,7 +283,7 @@ export function VenueProfileForm({
         <div className="mt-4 flex flex-wrap gap-3">
           {photoUrls.map((url, i) => (
             <div key={`e-${i}`} className="relative">
-              <img src={url} alt="" className="h-24 w-24 rounded-lg object-cover border border-stone-200" />
+              <img src={getPhotoDisplayUrl(url)} alt="" className="h-24 w-24 rounded-lg object-cover border border-stone-200" />
               <button type="button" onClick={() => removePhoto(i)} className="absolute -top-2 -right-2 rounded-full bg-stone-700 text-white w-5 h-5 text-xs leading-none" aria-label="Remove">×</button>
             </div>
           ))}

@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import Link from "next/link";
 import { VenueSearchForm } from "@/components/VenueSearchForm";
 import { getVenues } from "@/lib/venues";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getPhotoDisplayUrl } from "@/lib/utils";
 
 type PageProps = { searchParams: Promise<{ region?: string; style?: string; guests?: string; budget?: string }> };
 
@@ -39,7 +39,7 @@ export default async function VenuesPage({ searchParams }: PageProps) {
                 <div className="aspect-[4/3] bg-stone-200">
                   {(v.coverUrl || (v.photoUrls && (v.photoUrls as string[])[0])) ? (
                     <img
-                      src={(v.coverUrl || (v.photoUrls as string[])[0]) as string}
+                      src={getPhotoDisplayUrl((v.coverUrl || (v.photoUrls as string[])[0]) as string)}
                       alt=""
                       className="h-full w-full object-cover"
                     />

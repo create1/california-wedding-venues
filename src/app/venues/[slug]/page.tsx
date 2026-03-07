@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { getVenueBySlug, getVenueStyles } from "@/lib/venues";
-import { formatPrice } from "@/lib/utils";
+import { formatPrice, getPhotoDisplayUrl } from "@/lib/utils";
 import { InquiryForm } from "@/components/InquiryForm";
 
 type Props = { params: Promise<{ slug: string }> };
@@ -48,7 +48,7 @@ export default async function VenueProfilePage({ params }: Props) {
             <div className="mt-6 grid grid-cols-2 gap-2 md:grid-cols-3">
               {photos.slice(0, 6).map((url, i) => (
                 <div key={i} className="aspect-[4/3] overflow-hidden rounded-lg bg-stone-200">
-                  <img src={url} alt="" className="h-full w-full object-cover" />
+                  <img src={getPhotoDisplayUrl(url)} alt="" className="h-full w-full object-cover" />
                 </div>
               ))}
             </div>

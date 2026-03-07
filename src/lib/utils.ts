@@ -25,6 +25,20 @@ export function formatPrice(n: number): string {
   return `$${n}`;
 }
 
+/** Use proxy for private Vercel Blob URLs so they can be displayed in img src. */
+export function getPhotoDisplayUrl(url: string): string {
+  if (!url || typeof url !== "string") return url;
+  try {
+    const u = new URL(url);
+    if (u.hostname.endsWith(".private.blob.vercel-storage.com") && u.protocol === "https:") {
+      return `/api/photo?url=${encodeURIComponent(url)}`;
+    }
+  } catch {
+    // ignore
+  }
+  return url;
+}
+
 export function getTierLimit(tier: string, key: keyof typeof import("./constants").TIER_LIMITS.free) {
   const limits = require("./constants").TIER_LIMITS as Record<string, Record<string, number | boolean>>;
   const t = limits[tier] ?? limits.free;

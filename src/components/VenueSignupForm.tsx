@@ -70,8 +70,8 @@ export function VenueSignupForm() {
         }
         if (!uploadRes.ok) {
           const d = await uploadRes.json().catch(() => ({}));
-          const msg = d.error || "Upload failed";
-          throw new Error(`Photo ${i + 1}: ${msg}. Try images under 3MB each.`);
+          const msg = d.detail ? `${d.error}: ${d.detail}` : (d.error || "Upload failed");
+          throw new Error(`Photo ${i + 1}: ${msg}`);
         }
         const data = await uploadRes.json();
         if (data.url) urls.push(data.url);
