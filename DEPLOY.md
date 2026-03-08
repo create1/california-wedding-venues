@@ -78,7 +78,7 @@ From your machine (with `DATABASE_URL` in `.env` pointing at that production DB)
 npm run db:generate
 
 # Apply migrations
-npx drizzle-kit migrate
+npm run db:migrate
 
 # Seed regions, styles, amenities
 npx tsx scripts/seed.ts
