@@ -156,6 +156,7 @@ If your provider has a “Run SQL” or “Migration” UI, you can paste the co
 
 ## 5. Post-deploy checklist
 
+- [ ] **If the site shows 503:** Open **https://californiaweddingvenues.ca/api/health**. It returns `{ ok, env: { hasDatabase, hasNextAuth } }`. If `ok` is false, add the missing env vars in Vercel (Settings → Environment Variables). Also check Vercel → Deployments → latest → Function Logs for the real error.
 - [ ] Open **https://californiaweddingvenues.ca** and confirm the homepage loads.
 - [ ] Try **Browse Venues** (empty until venues are added).
 - [ ] **List your venue** → sign up → submit an application.
