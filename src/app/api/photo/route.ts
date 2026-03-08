@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 const PRIVATE_BLOB_HOST = ".private.blob.vercel-storage.com";
 

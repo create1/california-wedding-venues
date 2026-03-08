@@ -69,15 +69,16 @@ Neon Auth is a managed auth service that stores users and sessions in your Neon 
 
 ### Run migrations and seed
 
-From your machine (with `DATABASE_URL` in `.env`):
+**If the Vercel build log shows `relation "venues" does not exist`**, your production database has no tables. Run migrations against the same `DATABASE_URL` you use in Vercel (Neon or Supabase).
+
+From your machine (with `DATABASE_URL` in `.env` pointing at that production DB):
 
 ```bash
 # Generate migrations from schema (if you haven’t)
 npm run db:generate
 
-# Apply migrations (use Neon/Supabase SQL editor or CLI)
-# If using Drizzle’s migrate: npx drizzle-kit migrate
-# Or run the SQL from the generated files in ./drizzle/ against your DB.
+# Apply migrations
+npx drizzle-kit migrate
 
 # Seed regions, styles, amenities
 npx tsx scripts/seed.ts
